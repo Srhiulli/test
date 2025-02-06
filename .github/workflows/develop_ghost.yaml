@@ -1,0 +1,22 @@
+name: Ghost Inspector Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Executar testes do Ghost Inspector
+        uses: docker://ghostinspector/cli
+        with:
+          args: test execute ${{ secrets.GI_TEST }} \
+            --apiKey ${{ secrets.GI_API_KEY }} \
+            --startUrl https://staging.clint.digital \
+            --errorOnFail
