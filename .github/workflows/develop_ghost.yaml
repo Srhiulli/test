@@ -16,7 +16,7 @@ jobs:
       - name: Executar testes do Ghost Inspector
         uses: docker://ghostinspector/cli
         with:
-          args: test execute ${{ secrets.GI_TEST }} \
+          args: test execute ${{ secrets.GI_SUITE }} \
             --apiKey ${{ secrets.GI_API_KEY }} \
             --startUrl https://staging.clint.digital \
             --errorOnFail
