@@ -23,9 +23,9 @@ jobs:
             echo "Executando teste para a suíte ID: $suite_id"
             docker run ghostinspector/cli suite execute $suite_id \
               --apiKey ${{ secrets.GI_API_KEY }} \
-              --startUrl ${{secrets.GI_START_URL}} || errors=$((errors+1)) 
+              --startUrl ${{ vars.GI_START_URL }} || errors=$((errors+1)) 
 
-          # Após o loop, falha o job se houver erros
+         
           if [ $errors -gt 0 ]; then
             echo "$errors teste(s) falharam."
             exit 1  # Falha o workflow
