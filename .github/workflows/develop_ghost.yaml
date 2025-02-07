@@ -3,8 +3,6 @@ name: Ghost Inspector Tests
 on:
   push:
     branches: [main]
-  
-
 
 jobs:
   test:
@@ -19,11 +17,18 @@ jobs:
 
       - name: Executar testes para cada ID extraído
         run: |
+          errors=0  # Inicializa a variável para contar falhas
+          
           for suite_id in $(cat output.json); do
             echo "Executando teste para a suíte ID: $suite_id"
             docker run ghostinspector/cli suite execute $suite_id \
               --apiKey ${{ secrets.GI_API_KEY }} \
-              --startUrl https://staging.clint.digital \
-              --errorOnFail
-          done
-            
+              --startUrl ${{secrets.GI_START_URL}} || errors=$((errors+1)) 
+
+          # Após o loop, falha o job se houver erros
+          if [ $errors -gt 0 ]; then
+            echo "$errors teste(s) falharam."
+            exit 1  # Falha o workflow
+          else
+            echo "Todos os testes passaram!"
+          fi
