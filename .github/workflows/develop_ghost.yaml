@@ -15,14 +15,15 @@ jobs:
 
       - name: Rodar Ghost Inspector CLI e capturar saída
         run: |
-          docker run ghostinspector/cli suite list --apiKey ${{ secrets.GI_API_KEY }} --json | jq '.[]._id'
+          docker run ghostinspector/cli suite list --apiKey ${{ secrets.GI_API_KEY }} --json | jq '.[]._id' > output.json
 
-      - name: Executar testes do Ghost Inspector
-        uses: docker://ghostinspector/cli
-        with:
-          args: suite execute 676331ba7a599a5bc8a55a83 \
-            --apiKey ${{ secrets.GI_API_KEY }} \
-            --startUrl https://staging.clint.digital \
-            --errorOnFail
-
+      - name: Executar testes para cada ID extraído
+        run: |
+          for suite_id in $(cat output.json); do
+            echo "Executando teste para a suíte ID: $suite_id"
+            docker run ghostinspector/cli suite execute $suite_id \
+              --apiKey ${{ secrets.GI_API_KEY }} \
+              --startUrl https://staging.clint.digital \
+              --errorOnFail
+          done
             
