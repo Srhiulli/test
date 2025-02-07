@@ -13,12 +13,13 @@ jobs:
       - name: Checkout do código
         uses: actions/checkout@v4
 
-      - name: listar as suites
-        uses: docker://ghostinspector/cli
-        with: 
-          args: suite list \
-           --apiKey ${{ secrets.GI_API_KEY }} \
-           --json
+      - name: Rodar Ghost Inspector CLI e capturar saída
+        run: |
+          docker run --platform linux/amd64 ghostinspector/cli suite list --apiKey ${{ secrets.GI_API_KEY }} > output.json
+
+      - name: Processar saída com jq
+        run: |
+          cat output.json | jq '.[]._id'
 
       - name: Executar testes do Ghost Inspector
         uses: docker://ghostinspector/cli
