@@ -15,17 +15,9 @@ jobs:
 
       - name: Rodar Ghost Inspector CLI e capturar saída
         run: |
-          docker run --platform linux/amd64 ghostinspector/cli suite list --apiKey ${{ secrets.GI_API_KEY }} --json > output.json
-
-      - name: Verificar conteúdo do arquivo output.json
-        run: |
-          echo "Conteúdo do output.json:"
-          cat output.json
-
-      - name: Processar saída com jq
-        run: |
-          echo "Processando saída com jq:"
-          jq '.' output.json  # Apenas para debugar a estrutura do JSON
+          docker run ghostinspector/cli suite list \
+          --apiKey ${{ secrets.GI_API_KEY }} \ 
+          --json | jq '.[]._id'
 
       - name: Executar testes do Ghost Inspector
         uses: docker://ghostinspector/cli
