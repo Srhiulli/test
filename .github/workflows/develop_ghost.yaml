@@ -17,7 +17,7 @@ jobs:
 
       - name: Executar testes para cada ID extraído
         run: |
-          errors=0  # Inicializa a variável para contar falhas
+          errors=0
           
           for suite_id in $(cat output.json); do
             echo "Executando teste para a suíte ID: $suite_id"
