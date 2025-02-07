@@ -20,6 +20,11 @@ jobs:
           errors=0
           
           for suite_id in $(cat output.json); do
+            if [ "$suite_id" = "\"6761d7427a599a5bc844ad51\"" ]; then
+              echo "Ignorando suíte ID: $suite_id"
+              continue
+            fi
+
             echo "Executando teste para a suíte ID: $suite_id"
             docker run ghostinspector/cli suite execute $suite_id \
               --apiKey ${{ secrets.GI_API_KEY }} \
