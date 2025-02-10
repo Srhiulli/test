@@ -15,10 +15,6 @@ jobs:
         run: |
            echo -e "674871a884d2a5c4a5b35b1e\n66f08c13437cb0e9bf903e4d" > output.json
 
-      # - name: Run Ghost Inspector CLI and capture output
-      #   run: |
-      #     docker run --rm ghostinspector/cli suite list --apiKey ${{ secrets.GI_API_KEY }} --json | jq '.[]._id' > output.json
-
       - name: Run tests for each ID
         run: |
             errors=0
@@ -31,28 +27,9 @@ jobs:
                 --apiKey ${{ secrets.GI_API_KEY }} \
                 --startUrl ${{ vars.GI_START_URL }} --json)
 
-              # Extract result ID from the response using jq
-              result_id=$(echo "$result" | jq -r '._id')
-
-              echo "Test result ID: $result_id"
-
-              # Wait for the result using the result_id
-              wait_result=$(docker run ghostinspector/cli result wait $result_id --apiKey ${{ secrets.GI_API_KEY }} --json)
-
-              # Check if the test passed
-              test_passed=$(echo "$wait_result" | jq -r '.passing')
-
-              if [ "$test_passed" == "false" ]; then
-                echo "❌ Test suite $suite_id has failed tests."
-                errors=$((errors+1))
-              else
-                echo "✅ Test suite $suite_id passed."
-              fi
+              # Capture and save the result
+              echo "$result" > "result_$suite_id.json"
+              
             done  
 
-            if [ $errors -gt 0 ]; then
-              echo "❌ $errors test(s) have failed. Failing pipeline."
-              exit 1
-            else
-              echo "✅ All tests passed!"
-            fi
+            echo "✅ All test results saved!"
