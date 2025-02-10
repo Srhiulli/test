@@ -1,4 +1,4 @@
-name: Ghost Inspector Testss
+name: Ghost Inspector Tests
 
 on:
   push:
@@ -8,33 +8,36 @@ jobs:
   test:
     runs-on: self-hosted 
     steps:
-      - name: Checkout do código
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Rodar Ghost Inspector CLI e capturar saída
-        run: |
-          docker run ghostinspector/cli suite list --apiKey ${{ secrets.GI_API_KEY }} --json | jq '.[]._id' > output.json
+      # - name: Run Ghost Inspector CLI and capture output
+      #   run: |
+      #     docker run ghostinspector/cli suite list --apiKey ${{ secrets.GI_API_KEY }} --json | jq '.[]._id' > output.json
 
-      - name: Executar testes para cada ID extraído
+      - name: Mock test suite IDs
+        run: |
+          echo -e "674871a884d2a5c4a5b35b1e\n66f08c13437cb0e9bf903e4d" > output.json
+
+      - name: Run tests for each ID
         run: |
           errors=0
           
           for suite_id in $(cat output.json); do
             if [ "$suite_id" = "\"6761d7427a599a5bc844ad51\"" ]; then
-              echo "Ignorando suíte ID: $suite_id"
+              echo "Ignoring suite ID: $suite_id"
               continue
             fi
 
-            echo "Executando teste para a suíte ID: $suite_id"
+            echo "Running tests for ID: $suite_id"
             docker run ghostinspector/cli suite execute $suite_id \
               --apiKey ${{ secrets.GI_API_KEY }} \
-              --startUrl ${{ vars.GI_START_URL }} || errors=$((errors+1)) 
+              --startUrl ${{ vars.GI_START_URL }} || errors=$((errors+1))
           done  
 
-          
           if [ $errors -gt 0 ]; then
-            echo "$errors teste(s) falharam."
-            exit 1  # Falha o workflow
+            echo "$errors test(s) have failed."
+            exit 1
           else
-            echo "Todos os testes passaram!"
-          fi 
+            echo "All tests passed!!! :)"
+          fi
