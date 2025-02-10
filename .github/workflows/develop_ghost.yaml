@@ -11,6 +11,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Mock test suite IDs
+        run: |
+           echo -e "674871a884d2a5c4a5b35b1e\n66f08c13437cb0e9bf903e4d" > output.json
+
       # - name: Run Ghost Inspector CLI and capture output
       #   run: |
       #     docker run --rm ghostinspector/cli suite list --apiKey ${{ secrets.GI_API_KEY }} --json | jq '.[]._id' > output.json
