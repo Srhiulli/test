@@ -24,20 +24,20 @@ jobs:
           errors=0
           
           for suite_id in $(cat output.json); do
-            if [ "$suite_id" = "\"6761d7427a599a5bc844ad51\"" ]; then
-              echo "Ignoring suite ID: $suite_id"
-              continue
-            fi
-
             echo "Running tests for ID: $suite_id"
-            docker run ghostinspector/cli suite execute $suite_id \
+            if ! docker run ghostinspector/cli suite execute $suite_id \
               --apiKey ${{ secrets.GI_API_KEY }} \
-              --startUrl ${{ vars.GI_START_URL }} || errors=$((errors+1))
+              --startUrl ${{ vars.GI_START_URL }}; then
+              echo "❌ Test suite $suite_id failed."
+              errors=$((errors+1))
+            else
+              echo "✅ Test suite $suite_id passed."
+            fi
           done  
 
           if [ $errors -gt 0 ]; then
-            echo "$errors test(s) have failed."
+            echo "❌ $errors test(s) have failed. Failing pipeline."
             exit 1
           else
-            echo "All tests passed!!! :)"
+            echo "✅ All tests passed!"
           fi
