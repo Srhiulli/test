@@ -15,33 +15,40 @@ jobs:
       #   run: |
       #     docker run --rm ghostinspector/cli suite list --apiKey ${{ secrets.GI_API_KEY }} --json | jq '.[]._id' > output.json
 
-      - name: Mock test suite IDs
-        run: |
-          echo -e "674871a884d2a5c4a5b35b1e\n66f08c13437cb0e9bf903e4d" > output.json
-
       - name: Run tests for each ID
         run: |
-          errors=0
-          
-          for suite_id in $(cat output.json); do
-            echo "Running tests for ID: $suite_id"
-            result=$(docker run ghostinspector/cli suite execute $suite_id \
-              --apiKey ${{ secrets.GI_API_KEY }} \
-              --startUrl ${{ vars.GI_START_URL }} --json)
+            errors=0
+            
+            for suite_id in $(cat output.json); do
+              echo "Running tests for ID: $suite_id"
+              
+              # Execute test and capture result as JSON
+              result=$(docker run ghostinspector/cli suite execute $suite_id \
+                --apiKey ${{ secrets.GI_API_KEY }} \
+                --startUrl ${{ vars.GI_START_URL }} --json)
 
-            test_passed=$(echo "$result" | jq -r '.data.passing')
+              # Extract result ID from the response using jq
+              result_id=$(echo "$result" | jq -r '._id')
 
-            if [ "$test_passed" == "false" ]; then
-              echo "❌ Test suite $suite_id has failed tests."
-              errors=$((errors+1))
+              echo "Test result ID: $result_id"
+
+              # Wait for the result using the result_id
+              wait_result=$(docker run ghostinspector/cli result wait $result_id --apiKey ${{ secrets.GI_API_KEY }} --json)
+
+              # Check if the test passed
+              test_passed=$(echo "$wait_result" | jq -r '.passing')
+
+              if [ "$test_passed" == "false" ]; then
+                echo "❌ Test suite $suite_id has failed tests."
+                errors=$((errors+1))
+              else
+                echo "✅ Test suite $suite_id passed."
+              fi
+            done  
+
+            if [ $errors -gt 0 ]; then
+              echo "❌ $errors test(s) have failed. Failing pipeline."
+              exit 1
             else
-              echo "✅ Test suite $suite_id passed."
+              echo "✅ All tests passed!"
             fi
-          done  
-
-          if [ $errors -gt 0 ]; then
-            echo "❌ $errors test(s) have failed. Failing pipeline."
-            exit 1
-          else
-            echo "✅ All tests passed!"
-          fi
