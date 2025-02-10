@@ -6,30 +6,36 @@ on:
 
 jobs:
   test:
-    runs-on: self-hosted 
+    runs-on: self-hosted
     steps:
-      - name: Checkout code
+      - name: Code checkout 
         uses: actions/checkout@v4
 
-      - name: Mock test suite IDs
+      - name: Run Ghost Inspector CLI and get output
         run: |
-           echo -e "674871a884d2a5c4a5b35b1e\n66f08c13437cb0e9bf903e4d" > output.json
+          docker run --rm ghostinspector/cli suite list --apiKey ${{ secrets.GI_API_KEY }} --json | jq '.[]._id' > output.json
 
       - name: Run tests for each ID
         run: |
-            errors=0
+          errors=0
+          
+          for suite_id in $(cat output.json); do
+            if [ "$suite_id" = "\"6761d7427a599a5bc844ad51\"" ]; then
+              echo "Ignore suíte ID: $suite_id"
+              continue
+            fi
+
+            echo "Run tests ID: $suite_id"
+            docker run --rm ghostinspector/cli suite execute $suite_id \
+              --apiKey ${{ secrets.GI_API_KEY }} \
+              --startUrl ${{ vars.GI_START_URL }}  --errorOnFail || errors=$((errors+1)) 
+          done
+
+          if [ $errors -gt 0 ]; then
+            echo "😰 $errors test(s) that have failed."
+            exit 1
+          else
+            echo "✅ All tests passed!"
+          fi
+
             
-            for suite_id in $(cat output.json); do
-              echo "Running tests for ID: $suite_id"
-              
-              # Execute test and capture result as JSON
-              result=$(docker run ghostinspector/cli suite execute $suite_id \
-                --apiKey ${{ secrets.GI_API_KEY }} \
-                --startUrl ${{ vars.GI_START_URL }} --json)
-
-              # Capture and save the result
-              echo "$result" > "result_$suite_id.json"
-              
-            done  
-
-            echo "✅ All test results saved!"
