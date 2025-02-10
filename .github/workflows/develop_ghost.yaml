@@ -13,7 +13,7 @@ jobs:
 
       # - name: Run Ghost Inspector CLI and capture output
       #   run: |
-      #     docker run ghostinspector/cli suite list --apiKey ${{ secrets.GI_API_KEY }} --json | jq '.[]._id' > output.json
+      #     docker run --rm ghostinspector/cli suite list --apiKey ${{ secrets.GI_API_KEY }} --json | jq '.[]._id' > output.json
 
       - name: Mock test suite IDs
         run: |
@@ -25,10 +25,14 @@ jobs:
           
           for suite_id in $(cat output.json); do
             echo "Running tests for ID: $suite_id"
-            if ! docker run ghostinspector/cli suite execute $suite_id \
+            result=$(docker run ghostinspector/cli suite execute $suite_id \
               --apiKey ${{ secrets.GI_API_KEY }} \
-              --startUrl ${{ vars.GI_START_URL }}; then
-              echo "❌ Test suite $suite_id failed."
+              --startUrl ${{ vars.GI_START_URL }} --json)
+
+            test_passed=$(echo "$result" | jq -r '.data.passing')
+
+            if [ "$test_passed" == "false" ]; then
+              echo "❌ Test suite $suite_id has failed tests."
               errors=$((errors+1))
             else
               echo "✅ Test suite $suite_id passed."
