@@ -16,9 +16,3 @@ jobs:
     steps:
       - name: Simulando job 2
         run: sleep 15 && echo "Job 2 finalizado"
-
-  ghost-inspector:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Iniciar Ghost Inspector após os jobs fake
-        run: echo "Ghost Inspector Tests iniciou após os jobs anteriores!"
