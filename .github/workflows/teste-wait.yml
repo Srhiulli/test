@@ -1,0 +1,24 @@
+name: teste-wait
+
+on:
+  push:
+    branches: [main] 
+
+jobs:
+  job-1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Simulando job 1
+        run: sleep 10 && echo "Job 1 finalizado"
+
+  job-2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Simulando job 2
+        run: sleep 15 && echo "Job 2 finalizado"
+
+  ghost-inspector:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Iniciar Ghost Inspector após os jobs fake
+        run: echo "Ghost Inspector Tests iniciou após os jobs anteriores!"

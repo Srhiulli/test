@@ -1,12 +1,20 @@
 name: Ghost Inspector Tests
 
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: [teste-wait]
+    types: [completed]
 
 jobs:
+  wait-for-actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Esperar outras actions
+        run: echo "Aguardando outras actions finalizarem..."
+
   test:
     runs-on: self-hosted
+    needs: wait-for-actions
     steps:
       - name: Code checkout 
         uses: actions/checkout@v4
@@ -37,5 +45,3 @@ jobs:
           else
             echo "✅ All tests passed!"
           fi
-
-            
